@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translate JSON Values</title>
+</head>
+<body>
+
+    <h1>Translate JSON Values</h1>
+    <input type="file" id="upload" accept="application/json">
+    <br><br>
+    <button id="translate" style="display:none;">Translate JSON</button>
+    <pre id="output"></pre>
+
+    <script>
+        let jsonData;
+
+        // Upload the JSON file
+        document.getElementById('upload').addEventListener('change', function(e) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                jsonData = JSON.parse(event.target.result);
+                document.getElementById('translate').style.display = 'block';
+            };
+            reader.readAsText(e.target.files[0]);
+        });
+
+        // Translate the JSON values
+        document.getElementById('translate').addEventListener('click', async function() {
+            const translatedData = {};
+
+            for (const [key, value] of Object.entries(jsonData)) {
+                const translatedValue = await translateText(value, 'pt'); // Translate to Portuguese
+                translatedData[key] = translatedValue;
+            }
+
+            // Display the translated JSON
+            document.getElementById('output').textContent = JSON.stringify(translatedData, null, 2);
+        });
+
+        // Function to translate text using a translation API
+        async function translateText(text, targetLang) {
+            const apiKey = 'AIzaSyB835QOfmpQwKHU6w2JXJeZulX-ON5hkqQ'; // Replace with your Google API key
+            const url = `https://translation.googleapis.com/language/translate/v2?key=${apiKey}`;
+            const response = await fetch(url, {
+                method: 'POST',
+                body: JSON.stringify({
+                    q: text,
+                    target: targetLang,
+                }),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            const data = await response.json();
+            return data.data.translations[0].translatedText;
+        }
+    </script>
+
+</body>
+</html>
